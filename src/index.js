@@ -75,7 +75,7 @@ class App {
       ball.position.z += 0.12
 
       // Check the Z coordinate of the ball compared to the player
-      if (ball.position.z > this.player.position.z) {
+      if (ball.position.z > this.player.position.z && ball.position.z < this.player.position.z + 1) {
         // Compare ball's theta to player's theta
         if (ball.userData.theta <= this.player.userData.theta + 0.1 && ball.userData.theta >= this.player.userData.theta - 0.1) {
           // Compare the ball's mode with the player's mode
@@ -83,7 +83,6 @@ class App {
             this.balls.remove(ball)
             this.state.score++
             this.ui.score.textContent = this.state.score
-            this._spawnBall()
           }
         }
       }
@@ -93,7 +92,6 @@ class App {
         this.balls.remove(ball)
         this.state.missed++
         this.ui.missed.textContent = this.state.missed
-        this._spawnBall()
       }
     })
   }
@@ -210,6 +208,9 @@ class App {
     mesh.position.set(x, y, -4)
 
     this.balls.add(mesh)
+
+    // Spawn a new ball after a certain time
+    setTimeout(() => this._spawnBall(), 500 + Math.random()*1000)
   }
 
   _createBalls() {
