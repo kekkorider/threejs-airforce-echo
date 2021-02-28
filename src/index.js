@@ -17,7 +17,7 @@ import {
   Group
 } from 'three'
 
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Tweakpane from 'tweakpane'
 
 class App {
@@ -25,15 +25,20 @@ class App {
     this.container = document.querySelector(container)
 
     this.ui = {
-      score: document.querySelector('[data-ui-score]')
+      score: document.querySelector('[data-ui-score]'),
+      missed: document.querySelector('[data-ui-missed]')
     }
 
     this.state = {
-      score: 0
+      score: 0,
+      missed: 0,
+      playerMode: 'white'
     }
 
     this._resizeCb = () => this._onResize()
     this._mousemoveCb = e => this._onMousemove(e)
+    this._keydownCb = e => this._onKeydown(e)
+    this._keyupCb = e => this._onKeyup(e)
   }
 
   init() {
@@ -47,7 +52,7 @@ class App {
     this._createBalls()
     this._spawnBall()
     this._addListeners()
-    this._createControls()
+    // this._createControls()
     this._createDebugPanel()
 
     this.renderer.setAnimationLoop(() => {
@@ -67,25 +72,27 @@ class App {
     const elapsed = this.clock.getElapsedTime()
 
     this.balls.children.forEach(ball => {
-      ball.position.z += 0.05
+      ball.position.z += 0.12
 
       // Check the Z coordinate of the ball compared to the player
       if (ball.position.z > this.player.position.z) {
         // Compare ball's theta to player's theta
-        if (
-            ball.userData.theta <= this.player.userData.theta + 0.1 &&
-            ball.userData.theta >= this.player.userData.theta - 0.1
-            ) {
-          this.balls.remove(ball)
-          this.state.score++
-          this.ui.score.textContent = this.state.score
-          this._spawnBall()
+        if (ball.userData.theta <= this.player.userData.theta + 0.1 && ball.userData.theta >= this.player.userData.theta - 0.1) {
+          // Compare the ball's mode with the player's mode
+          if (ball.userData.mode === this.state.playerMode) {
+            this.balls.remove(ball)
+            this.state.score++
+            this.ui.score.textContent = this.state.score
+            this._spawnBall()
+          }
         }
       }
 
       // Remove the skipped ball when it goes out of view
       if (ball.position.z > 13) {
         this.balls.remove(ball)
+        this.state.missed++
+        this.ui.missed.textContent = this.state.missed
         this._spawnBall()
       }
     })
@@ -174,7 +181,7 @@ class App {
 
   _createPlayer() {
     const geom = new TorusGeometry(0.8, 0.15, 12, 50, Math.PI*2)
-    const mat = new MeshBasicMaterial({ color: 0x00ffff })
+    const mat = new MeshBasicMaterial({ color: 0xffffff })
 
     this.player = new Mesh(geom, mat)
 
@@ -185,7 +192,8 @@ class App {
 
   _spawnBall() {
     const geom = this.ballGeometry
-    const mat = Math.random() > 0.5 ?
+    const mode = Math.random() > 0.5 ? 'dark' : 'white'
+    const mat = mode === 'dark' ?
                   this.ballBlackMaterial :
                   this.ballWhiteMaterial
 
@@ -194,7 +202,7 @@ class App {
     const theta = Math.random()*Math.PI*2 - Math.PI
 
     mesh.userData.theta = theta
-    // console.log(theta)
+    mesh.userData.mode = mode
 
     const x = Math.cos(theta) * 4
     const y = Math.sin(theta) * 4
@@ -221,10 +229,15 @@ class App {
   _addListeners() {
     window.addEventListener('resize', this._resizeCb, { passive: true })
     this.container.addEventListener('mousemove', this._mousemoveCb, { passive: true })
+    document.addEventListener('keydown', this._keydownCb, { passive: true })
+    document.addEventListener('keyup', this._keyupCb, { passive: true })
   }
 
   _removeListeners() {
     window.removeEventListener('resize', this._resizeCb, { passive: true })
+    this.container.removeEventListener('mousemove', this._mousemoveCb, { passive: true })
+    document.removeEventListener('keydown', this._keydownCb, { passive: true })
+    document.removeEventListener('keyup', this._keyupCb, { passive: true })
   }
 
   _onResize() {
@@ -248,6 +261,24 @@ class App {
 
     this.player.position.x = playerX
     this.player.position.y = playerY
+  }
+
+  _onKeydown(e) {
+    switch(e.code) {
+      case 'Space':
+        this.state.playerMode = 'dark'
+        this.player.material.color.set(0x505050)
+        break
+    }
+  }
+
+  _onKeyup(e) {
+    switch(e.code) {
+      case 'Space':
+        this.state.playerMode = 'white'
+        this.player.material.color.set(0xffffff)
+        break
+    }
   }
 }
 
