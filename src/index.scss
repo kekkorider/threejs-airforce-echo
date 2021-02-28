@@ -1,4 +1,5 @@
 body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   overflow: hidden;
   height: 100vh;
   margin: 0;
@@ -7,9 +8,18 @@ body {
 
 #app {
   height: 100%;
+  position: relative;
   width: 100%;
 
   canvas {
     outline: none;
   }
+}
+
+#ui {
+  bottom: 40px;
+  color: white;
+  font-size: 21px;
+  position: fixed;
+  left: 40px;
 }
