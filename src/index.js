@@ -6,15 +6,16 @@ import {
   CylinderGeometry,
   TorusGeometry,
   SphereGeometry,
-  // MeshStandardMaterial,
   MeshBasicMaterial,
-  // ShaderMaterial,
+  ShaderMaterial,
   Mesh,
   PointLight,
   Color,
   Clock,
   BackSide,
-  Group
+  Group,
+  Vector2,
+  Vector3
 } from 'three'
 
 // import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
@@ -71,6 +72,8 @@ class App {
   _update() {
     const elapsed = this.clock.getElapsedTime()
 
+    this.tube.material.uniforms.uTime.value = elapsed
+
     this.balls.children.forEach(ball => {
       ball.position.z += 0.12
 
@@ -119,7 +122,7 @@ class App {
 
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight)
     this.renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio))
-    this.renderer.setClearColor(0x121212)
+    this.renderer.setClearColor(0x011216)
     this.renderer.physicallyCorrectLights = true
   }
 
@@ -141,10 +144,12 @@ class App {
      */
     const sceneFolder = this.pane.addFolder({ title: 'Scene' })
 
-    let params = { background: { r: 18, g: 18, b: 18 } }
+    let params = { background: { r: 2, g: 18, b: 22 } }
 
     sceneFolder.addInput(params, 'background', { label: 'Background Color' }).on('change', e => {
-      this.renderer.setClearColor(new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255))
+      const color = new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255)
+      this.renderer.setClearColor(color)
+      this.tube.material.uniforms.uBgColor.value = color
     })
 
     /**
@@ -165,9 +170,27 @@ class App {
 
   _createTube() {
     const geom = new CylinderGeometry(5, 5, 30, 48, 1, true)
-    const mat = new MeshBasicMaterial({
-      color: 0x090909,
-      side: BackSide
+    const mat = new ShaderMaterial({
+      vertexShader: require('./shaders/tube.vertex.glsl'),
+      fragmentShader: require('./shaders/tube.fragment.glsl'),
+      side: BackSide,
+      uniforms: {
+        uTime: {
+          value: 0
+        },
+        uResolution: {
+          value: new Vector2(
+            this.container.clientWidth,
+            this.container.clientHeight
+          )
+        },
+        uBgColor: {
+          value: new Vector3(2 / 255, 18 / 255, 22 / 255)
+        }
+      },
+      defines: {
+        LINES_NUM: 150
+      }
     })
 
     this.tube = new Mesh(geom, mat)
@@ -178,7 +201,7 @@ class App {
   }
 
   _createPlayer() {
-    const geom = new TorusGeometry(0.8, 0.15, 12, 50, Math.PI*2)
+    const geom = new TorusGeometry(0.9, 0.1, 12, 50, Math.PI*2)
     const mat = new MeshBasicMaterial({ color: 0xffffff })
 
     this.player = new Mesh(geom, mat)
