@@ -152,6 +152,26 @@ class App {
       this.tube.material.uniforms.uBgColor.value = color
     })
 
+
+    /**
+     * Black balls
+     */
+    const blackBallfolder = this.pane.addFolder({ title: 'Black Balls' })
+
+    params = {
+      color: { r: 7, g: 27, b: 38 }
+    }
+
+    blackBallfolder.addInput(this.ballBlackMaterial.uniforms.uFresnelInfluence, 'value', { label: 'Fresnel Influence', min: 0, max: 1 })
+
+    blackBallfolder.addInput(params, 'color', { label: 'Color' }).on('change', e => {
+      this.ballBlackMaterial.uniforms.uColor.value = new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255)
+    })
+
+    blackBallfolder.addInput(this.ballBlackMaterial.uniforms.uColorMin, 'value', { label: 'Color min threshold', min: 0, max: 1 })
+
+    blackBallfolder.addInput(this.ballBlackMaterial.uniforms.uColorMax, 'value', { label: 'Color max threshold', min: 0, max: 1 })
+
     /**
      * Light configuration
      */
@@ -242,7 +262,31 @@ class App {
 
     this.ballGeometry = new SphereGeometry(0.5, 16, 16)
 
-    this.ballBlackMaterial = new MeshBasicMaterial({ color: 0x404040 })
+    this.ballBlackMaterial = new ShaderMaterial({
+      vertexShader: require('./shaders/ball.vertex.glsl'),
+      fragmentShader: require('./shaders/ball-dark.fragment.glsl'),
+      uniforms: {
+        uResolution: {
+          value: new Vector2(
+            this.container.clientWidth,
+            this.container.clientHeight
+          )
+        },
+        uFresnelInfluence: {
+          value: 0.75
+        },
+        uColor: {
+          value: new Color(0x061A26)
+        },
+        uColorMin: {
+          value: 0.3
+        },
+        uColorMax: {
+          value: 0.55
+        },
+      }
+    })
+
     this.ballWhiteMaterial = new MeshBasicMaterial({ color: 0xf1f2f3 })
   }
 
