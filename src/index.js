@@ -19,6 +19,10 @@ import {
 } from 'three'
 
 // import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+
 import Tweakpane from 'tweakpane'
 
 import { gsap } from 'gsap'
@@ -56,6 +60,7 @@ class App {
     this._spawnBall()
     this._addListeners()
     // this._createControls()
+    this._createPostprocess()
     this._createDebugPanel()
 
     gsap.ticker.add(() => {
@@ -118,7 +123,23 @@ class App {
   }
 
   _render() {
-    this.renderer.render(this.scene, this.camera)
+    // this.renderer.render(this.scene, this.camera)
+    this.composer.render()
+  }
+
+  _createPostprocess() {
+    this.composer = new EffectComposer(this.renderer)
+
+    const renderPass = new RenderPass(this.scene, this.camera)
+    this.composer.addPass(renderPass)
+
+    const bloomPass = new UnrealBloomPass(
+      new Vector2(this.container.clientWidth, this.clientHeight),
+      2,
+      1.1,
+      0.9
+    )
+    this.composer.addPass(bloomPass)
   }
 
   _createScene() {
@@ -169,6 +190,17 @@ class App {
     sceneFolder.addInput(this.tube.material.uniforms.uLinesNum, 'value', { label: 'Number of Lines', min: 5, max: 300, step: 5 })
     sceneFolder.addInput(this.tube.material.uniforms.uLinesThickness, 'value', { label: 'Lines Thickness', min: 1, max: 20, step: 0.1 })
     sceneFolder.addInput(this.tube.material.uniforms.uTorsion, 'value', { label: 'Torsion', min: -2, max: 2 })
+
+
+    /**
+     * Postprocess
+     */
+    const ppFolder = this.pane.addFolder({ title: 'Postprocess' })
+
+    ppFolder.addInput(this.composer.passes[1], 'enabled', { label: 'Enabled' })
+    ppFolder.addInput(this.composer.passes[1], 'radius', { label: 'Radius', min: 0, max: 2 })
+    ppFolder.addInput(this.composer.passes[1], 'strength', { label: 'Strength', min: 0, max: 2 })
+    ppFolder.addInput(this.composer.passes[1], 'threshold', { label: 'Threshold', min: 0, max: 2 })
   }
 
   _createTube() {
