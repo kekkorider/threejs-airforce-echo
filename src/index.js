@@ -146,10 +146,11 @@ class App {
     const sceneFolder = this.pane.addFolder({ title: 'Scene' })
 
     sceneFolder.addInput(this.tube.material.uniforms.uLinesNum, 'value', { label: 'Number of Lines', min: 5, max: 300, step: 5 })
+    sceneFolder.addInput(this.tube.material.uniforms.uTorsion, 'value', { label: 'Torsion', min: -2, max: 2 })
   }
 
   _createTube() {
-    const geom = new CylinderGeometry(5, 5, 30, 48, 1, true)
+    const geom = new CylinderGeometry(5, 5, 30, 48, 50, true)
     const mat = new ShaderMaterial({
       vertexShader: require('./shaders/tube.vertex.glsl'),
       fragmentShader: require('./shaders/tube.fragment.glsl'),
@@ -169,6 +170,9 @@ class App {
         },
         uBgColor: {
           value: new Color(0, 0, 0)
+        },
+        uTorsion: {
+          value: 2
         }
       }
     })
