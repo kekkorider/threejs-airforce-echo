@@ -146,6 +146,7 @@ class App {
     const sceneFolder = this.pane.addFolder({ title: 'Scene' })
 
     sceneFolder.addInput(this.tube.material.uniforms.uLinesNum, 'value', { label: 'Number of Lines', min: 5, max: 300, step: 5 })
+    sceneFolder.addInput(this.tube.material.uniforms.uLinesThickness, 'value', { label: 'Lines Thickness', min: 1, max: 20, step: 0.1 })
     sceneFolder.addInput(this.tube.material.uniforms.uTorsion, 'value', { label: 'Torsion', min: -2, max: 2 })
   }
 
@@ -162,6 +163,9 @@ class App {
         uLinesNum: {
           value: 100
         },
+        uLinesThickness: {
+          value: 10
+        },
         uResolution: {
           value: new Vector2(
             this.container.clientWidth,
@@ -173,6 +177,13 @@ class App {
         },
         uTorsion: {
           value: 2
+        },
+        uLinesColors: {
+          value: [
+            new Color(0xffffff),
+            new Color(0xCCCCFF),
+            new Color(0xFF00CC)
+          ]
         }
       }
     })

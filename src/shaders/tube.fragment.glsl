@@ -1,7 +1,9 @@
 uniform float uTime;
 uniform float uLinesNum;
+uniform float uLinesThickness;
 uniform vec2 uResolution;
 uniform vec3 uBgColor;
+uniform vec3 uLinesColors[3];
 
 varying vec2 vUv;
 
@@ -14,49 +16,42 @@ void main() {
   vec3 color = uBgColor;
 
   // Shadows
-  vec2 blackShadowPosition = vec2(0.0, vUv.y + (mod(uTime*1.62, 2.0) - 1.0));
-  float blackShadow = abs(blackShadowPosition.y * 2.0 - 1.0);
-  blackShadow = 1.0 - smoothstep(0., 1.0, blackShadow);
-  blackShadow *= 0.9;
-
-  vec2 whiteShadowPosition = vec2(0.0, vUv.y + mod(uTime, 2.0) - 1.0);
-  float whiteShadow = abs(whiteShadowPosition.y * 2.0 - 1.0);
-  whiteShadow = smoothstep(0.1, 0.45, whiteShadow);
-  // whiteShadow *= 0.9;
+  vec2 blackShadowPosition = vec2(0., vUv.y + (mod(uTime*1.62, 2.) - 1.));
+  float blackShadow = abs(blackShadowPosition.y * 2. - 1.);
+  blackShadow = 1. - smoothstep(0., 1., blackShadow);
 
   // Generate lines
-  float linesNum = float(uLinesNum);
-  for (float i = 0.0; i < linesNum; i++) {
+  for (float i = 0.; i < uLinesNum; i++) {
     vec2 lv = vUv;
-    lv.y = 1.0 - lv.y;
-    float r = Rand(vec2(i+1.0, 0.0));
+    lv.y = 1. - lv.y;
+    float r = Rand(vec2(i+1., 0.));
 
-    lv.x += sin(lv.y*5.0 - uTime*r*10.4) * (1.0 - r)*0.013;
-    lv.x -= sin(lv.y*11.0 - uTime*r*13.0) * (1.0 - r)*0.01;
+    lv.x += sin(lv.y*5. - uTime*r*10.4) * (1. - r)*0.013;
+    lv.x -= sin(lv.y*11. - uTime*r*13.) * (1. - r)*0.01;
 
-    // the thickness of the line goes from 1 to
-    float thickness = max(sin(lv.y)*2., 1.);
+    // the thickness of the line goes from 1 to X
+    float thickness = max(sin(lv.y)*uLinesThickness, 1.);
 
-    float line = Line(
+    vec3 line = vec3(Line(
       lv,
-      vec2((i+1.) * (1.0 / linesNum), 0.0),
-      vec2((i+1.) * (1.0 / linesNum), 1.0),
+      vec2((i+1.) * (1. / uLinesNum), 0.),
+      vec2((i+1.) * (1. / uLinesNum), 1.),
       thickness,
       uResolution
-    );
+    ));
 
-    line *= smoothstep(0.0, 0.1, lv.y);
-    line *= (1.0 - r);
+    line *= smoothstep(0., .1, lv.y);
+    line *= (1. - r);
+
+    float index = mod(i, 3.);
+    line *= uLinesColors[int(index)];
 
     color += line;
   }
 
-  vec3 lineColor = vec3(12., 148., 182.) / 255.;
+  vec3 shines = blendLinearBurn(color, vec3(blackShadow), 1.);
 
-  vec3 shines = blendLinearBurn(color, vec3(blackShadow), 1.0);
-  shines *= lineColor;
-
-  color = blendMultiply(color, shines, 0.95);
+  color = blendMultiply(color, shines, 1.);
 
   gl_FragColor = vec4(color, 1.);
 }
