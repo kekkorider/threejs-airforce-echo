@@ -17,8 +17,10 @@ import {
   TextureLoader
 } from 'three'
 
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Tweakpane from 'tweakpane'
+
+import { gsap } from 'gsap'
 
 class App {
   constructor(container) {
@@ -52,7 +54,7 @@ class App {
     this._createBalls()
     this._spawnBall()
     this._addListeners()
-    this._createControls()
+    // this._createControls()
     this._createDebugPanel()
 
     this.renderer.setAnimationLoop(() => {
@@ -287,6 +289,12 @@ class App {
 
     this.player.position.x = playerX
     this.player.position.y = playerY
+
+    gsap.to(this.camera.position, {
+      x: () => deltaX / this.container.clientWidth * -1,
+      y: () => deltaY / this.container.clientHeight,
+      duration: 0.9
+    })
   }
 
   _onKeydown(e) {

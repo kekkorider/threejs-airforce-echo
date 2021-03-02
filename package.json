@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "glsl-blend": "^1.0.3",
+    "gsap": "^3.6.0",
     "three": "^0.126.0",
     "tweakpane": "^2.0.0"
   }
