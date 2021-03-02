@@ -6,15 +6,15 @@ import {
   CylinderGeometry,
   TorusGeometry,
   SphereGeometry,
-  MeshBasicMaterial,
+  MeshMatcapMaterial,
   ShaderMaterial,
   Mesh,
-  PointLight,
   Color,
   Clock,
   BackSide,
   Group,
-  Vector2
+  Vector2,
+  TextureLoader
 } from 'three'
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
@@ -45,7 +45,7 @@ class App {
     this._createScene()
     this._createCamera()
     this._createRenderer()
-    this._createLight()
+    this._loadTextures()
     this._createClock()
     this._createTube()
     this._createPlayer()
@@ -122,13 +122,15 @@ class App {
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight)
     this.renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio))
     this.renderer.setClearColor(0x000000)
-    this.renderer.physicallyCorrectLights = true
   }
 
-  _createLight() {
-    this.pointLight = new PointLight(0xff0055, 50, 100, 2)
-    this.pointLight.position.set(0, 1, 3)
-    this.scene.add(this.pointLight)
+  _loadTextures() {
+    const loader = new TextureLoader()
+
+    this.textures = {
+      black05: loader.load('/black-05.png'),
+      white03: loader.load('/white-03.png')
+    }
   }
 
   _createControls() {
@@ -143,71 +145,7 @@ class App {
      */
     const sceneFolder = this.pane.addFolder({ title: 'Scene' })
 
-    let params = { background: { r: 0, g: 0, b: 0 } }
-
-    sceneFolder.addInput(params, 'background', { label: 'Background Color' }).on('change', e => {
-      const color = new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255)
-      this.renderer.setClearColor(color)
-      this.tube.material.uniforms.uBgColor.value = color
-    })
-
     sceneFolder.addInput(this.tube.material.uniforms.uLinesNum, 'value', { label: 'Number of Lines', min: 5, max: 300, step: 5 })
-
-
-    /**
-     * Black balls
-     */
-    const blackBallfolder = this.pane.addFolder({ title: 'Black Balls' })
-
-    params = {
-      color: { r: 7, g: 27, b: 38 }
-    }
-
-    blackBallfolder.addInput(this.ballBlackMaterial.uniforms.uFresnelInfluence, 'value', { label: 'Fresnel Influence', min: 0, max: 1 })
-
-    blackBallfolder.addInput(params, 'color', { label: 'Color' }).on('change', e => {
-      this.ballBlackMaterial.uniforms.uColor.value = new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255)
-    })
-
-    blackBallfolder.addInput(this.ballBlackMaterial.uniforms.uColorMin, 'value', { label: 'Color min threshold', min: 0, max: 1 })
-
-    blackBallfolder.addInput(this.ballBlackMaterial.uniforms.uColorMax, 'value', { label: 'Color max threshold', min: 0, max: 1 })
-
-
-    /**
-     * White balls
-     */
-    const whiteBallfolder = this.pane.addFolder({ title: 'White Balls' })
-
-    params = {
-      color: { r: 197, g: 216, b: 226 }
-    }
-
-    whiteBallfolder.addInput(this.ballWhiteMaterial.uniforms.uFresnelInfluence, 'value', { label: 'Fresnel Influence', min: 0, max: 1 })
-
-    whiteBallfolder.addInput(params, 'color', { label: 'Color' }).on('change', e => {
-      this.ballWhiteMaterial.uniforms.uColor.value = new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255)
-    })
-
-    whiteBallfolder.addInput(this.ballWhiteMaterial.uniforms.uColorMin, 'value', { label: 'Color min threshold', min: 0, max: 1 })
-
-    whiteBallfolder.addInput(this.ballWhiteMaterial.uniforms.uColorMax, 'value', { label: 'Color max threshold', min: 0, max: 1 })
-
-
-    /**
-     * Light configuration
-     */
-    const lightFolder = this.pane.addFolder({ title: 'Light' })
-
-    params = {
-      color: { r: 255, g: 0, b: 85 }
-    }
-
-    lightFolder.addInput(params, 'color', { label: 'Color' }).on('change', e => {
-      this.pointLight.color = new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255)
-    })
-
-    lightFolder.addInput(this.pointLight, 'intensity', { label: 'Intensity', min: 0, max: 1000 })
   }
 
   _createTube() {
@@ -243,8 +181,10 @@ class App {
   }
 
   _createPlayer() {
-    const geom = new TorusGeometry(0.9, 0.1, 12, 50, Math.PI*2)
-    const mat = new MeshBasicMaterial({ color: 0xffffff })
+    const geom = new TorusGeometry(0.8, 0.15, 12, 50, Math.PI*2)
+    const mat = new MeshMatcapMaterial({
+      matcap: this.textures.white03
+    })
 
     this.player = new Mesh(geom, mat)
 
@@ -284,54 +224,12 @@ class App {
 
     this.ballGeometry = new SphereGeometry(0.5, 32, 32)
 
-    this.ballBlackMaterial = new ShaderMaterial({
-      vertexShader: require('./shaders/ball.vertex.glsl'),
-      fragmentShader: require('./shaders/ball-dark.fragment.glsl'),
-      uniforms: {
-        uResolution: {
-          value: new Vector2(
-            this.container.clientWidth,
-            this.container.clientHeight
-          )
-        },
-        uFresnelInfluence: {
-          value: 1
-        },
-        uColor: {
-          value: new Color(0x061A26)
-        },
-        uColorMin: {
-          value: 0
-        },
-        uColorMax: {
-          value: 0.47
-        },
-      }
+    this.ballBlackMaterial = new MeshMatcapMaterial({
+      matcap: this.textures.black05
     })
 
-    this.ballWhiteMaterial = new ShaderMaterial({
-      vertexShader: require('./shaders/ball.vertex.glsl'),
-      fragmentShader: require('./shaders/ball-white.fragment.glsl'),
-      uniforms: {
-        uResolution: {
-          value: new Vector2(
-            this.container.clientWidth,
-            this.container.clientHeight
-          )
-        },
-        uFresnelInfluence: {
-          value: 0.75
-        },
-        uColor: {
-          value: new Color(0xC5D8E2)
-        },
-        uColorMin: {
-          value: 0
-        },
-        uColorMax: {
-          value: 0.46
-        },
-      }
+    this.ballWhiteMaterial = new MeshMatcapMaterial({
+      matcap: this.textures.white03
     })
   }
 
@@ -380,7 +278,7 @@ class App {
     switch(e.code) {
       case 'Space':
         this.state.playerMode = 'dark'
-        this.player.material.color.set(0x505050)
+        this.player.material.matcap = this.textures.black05
         break
     }
   }
@@ -389,7 +287,7 @@ class App {
     switch(e.code) {
       case 'Space':
         this.state.playerMode = 'white'
-        this.player.material.color.set(0xffffff)
+        this.player.material.matcap = this.textures.white03
         break
     }
   }
