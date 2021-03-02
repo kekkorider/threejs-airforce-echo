@@ -14,7 +14,8 @@ import {
   BackSide,
   Group,
   Vector2,
-  TextureLoader
+  TextureLoader,
+  Vector3
 } from 'three'
 
 // import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
@@ -75,6 +76,8 @@ class App {
 
     this.tube.material.uniforms.uTime.value = elapsed
 
+    this.camera.lookAt(new Vector3(0, 0, 0))
+
     this.balls.children.forEach(ball => {
       ball.position.z += 0.12
 
@@ -131,7 +134,9 @@ class App {
 
     this.textures = {
       black05: loader.load('/black-05.png'),
-      white03: loader.load('/white-03.png')
+      white03: loader.load('/white-03.png'),
+      white05: loader.load('/white-05.png'),
+      purple: loader.load('/purple.png')
     }
   }
 
@@ -200,7 +205,7 @@ class App {
   _createPlayer() {
     const geom = new TorusGeometry(0.8, 0.15, 12, 50, Math.PI*2)
     const mat = new MeshMatcapMaterial({
-      matcap: this.textures.white03
+      matcap: this.textures.white05
     })
 
     this.player = new Mesh(geom, mat)
@@ -242,11 +247,11 @@ class App {
     this.ballGeometry = new SphereGeometry(0.5, 32, 32)
 
     this.ballBlackMaterial = new MeshMatcapMaterial({
-      matcap: this.textures.black05
+      matcap: this.textures.purple
     })
 
     this.ballWhiteMaterial = new MeshMatcapMaterial({
-      matcap: this.textures.white03
+      matcap: this.textures.white05
     })
   }
 
@@ -291,8 +296,8 @@ class App {
     this.player.position.y = playerY
 
     gsap.to(this.camera.position, {
-      x: () => deltaX / this.container.clientWidth * -1,
-      y: () => deltaY / this.container.clientHeight,
+      x: () => deltaX / this.container.clientWidth * 4,
+      y: () => deltaY / this.container.clientHeight * 4,
       duration: 0.9
     })
   }
@@ -301,7 +306,7 @@ class App {
     switch(e.code) {
       case 'Space':
         this.state.playerMode = 'dark'
-        this.player.material.matcap = this.textures.black05
+        this.player.material.matcap = this.textures.purple
         break
     }
   }
@@ -310,7 +315,7 @@ class App {
     switch(e.code) {
       case 'Space':
         this.state.playerMode = 'white'
-        this.player.material.matcap = this.textures.white03
+        this.player.material.matcap = this.textures.white05
         break
     }
   }
