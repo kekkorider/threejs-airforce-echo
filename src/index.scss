@@ -27,3 +27,48 @@ body {
 .tp-dfwv {
   width: 400px !important;
 }
+
+#instructions {
+  color: white;
+  left: 0;
+  padding: 40px 0 0 40px;
+  position: fixed;
+  top: 0;
+  width: 50%;
+
+  p {
+    font-size: 18px;
+    line-height: 1.4;
+    margin: 0 0 0.6em;
+  }
+
+  ol {
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    line-height: 1.4;
+    margin-bottom: 0.2em;
+  }
+}
+
+#credits {
+  bottom: 0;
+  color: white;
+  font-size: 18px;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0 40px 40px 0;
+  position: fixed;
+  right: 0;
+  text-align: right;
+
+  a {
+    color: white;
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+}
