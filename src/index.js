@@ -14,11 +14,10 @@ import {
   Clock,
   BackSide,
   Group,
-  Vector2,
-  Vector3
+  Vector2
 } from 'three'
 
-// import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import Tweakpane from 'tweakpane'
 
 class App {
@@ -53,7 +52,7 @@ class App {
     this._createBalls()
     this._spawnBall()
     this._addListeners()
-    // this._createControls()
+    this._createControls()
     this._createDebugPanel()
 
     this.renderer.setAnimationLoop(() => {
@@ -122,7 +121,7 @@ class App {
 
     this.renderer.setSize(this.container.clientWidth, this.container.clientHeight)
     this.renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio))
-    this.renderer.setClearColor(0x011216)
+    this.renderer.setClearColor(0x000000)
     this.renderer.physicallyCorrectLights = true
   }
 
@@ -144,13 +143,15 @@ class App {
      */
     const sceneFolder = this.pane.addFolder({ title: 'Scene' })
 
-    let params = { background: { r: 2, g: 18, b: 22 } }
+    let params = { background: { r: 0, g: 0, b: 0 } }
 
     sceneFolder.addInput(params, 'background', { label: 'Background Color' }).on('change', e => {
       const color = new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255)
       this.renderer.setClearColor(color)
       this.tube.material.uniforms.uBgColor.value = color
     })
+
+    sceneFolder.addInput(this.tube.material.uniforms.uLinesNum, 'value', { label: 'Number of Lines', min: 5, max: 300, step: 5 })
 
 
     /**
@@ -171,6 +172,27 @@ class App {
     blackBallfolder.addInput(this.ballBlackMaterial.uniforms.uColorMin, 'value', { label: 'Color min threshold', min: 0, max: 1 })
 
     blackBallfolder.addInput(this.ballBlackMaterial.uniforms.uColorMax, 'value', { label: 'Color max threshold', min: 0, max: 1 })
+
+
+    /**
+     * White balls
+     */
+    const whiteBallfolder = this.pane.addFolder({ title: 'White Balls' })
+
+    params = {
+      color: { r: 197, g: 216, b: 226 }
+    }
+
+    whiteBallfolder.addInput(this.ballWhiteMaterial.uniforms.uFresnelInfluence, 'value', { label: 'Fresnel Influence', min: 0, max: 1 })
+
+    whiteBallfolder.addInput(params, 'color', { label: 'Color' }).on('change', e => {
+      this.ballWhiteMaterial.uniforms.uColor.value = new Color(e.value.r / 255, e.value.g / 255, e.value.b / 255)
+    })
+
+    whiteBallfolder.addInput(this.ballWhiteMaterial.uniforms.uColorMin, 'value', { label: 'Color min threshold', min: 0, max: 1 })
+
+    whiteBallfolder.addInput(this.ballWhiteMaterial.uniforms.uColorMax, 'value', { label: 'Color max threshold', min: 0, max: 1 })
+
 
     /**
      * Light configuration
@@ -198,6 +220,9 @@ class App {
         uTime: {
           value: 0
         },
+        uLinesNum: {
+          value: 100
+        },
         uResolution: {
           value: new Vector2(
             this.container.clientWidth,
@@ -205,11 +230,8 @@ class App {
           )
         },
         uBgColor: {
-          value: new Vector3(2 / 255, 18 / 255, 22 / 255)
+          value: new Color(0, 0, 0)
         }
-      },
-      defines: {
-        LINES_NUM: 150
       }
     })
 
@@ -260,7 +282,7 @@ class App {
     this.balls = new Group()
     this.scene.add(this.balls)
 
-    this.ballGeometry = new SphereGeometry(0.5, 16, 16)
+    this.ballGeometry = new SphereGeometry(0.5, 32, 32)
 
     this.ballBlackMaterial = new ShaderMaterial({
       vertexShader: require('./shaders/ball.vertex.glsl'),
@@ -273,21 +295,44 @@ class App {
           )
         },
         uFresnelInfluence: {
-          value: 0.75
+          value: 1
         },
         uColor: {
           value: new Color(0x061A26)
         },
         uColorMin: {
-          value: 0.3
+          value: 0
         },
         uColorMax: {
-          value: 0.55
+          value: 0.47
         },
       }
     })
 
-    this.ballWhiteMaterial = new MeshBasicMaterial({ color: 0xf1f2f3 })
+    this.ballWhiteMaterial = new ShaderMaterial({
+      vertexShader: require('./shaders/ball.vertex.glsl'),
+      fragmentShader: require('./shaders/ball-white.fragment.glsl'),
+      uniforms: {
+        uResolution: {
+          value: new Vector2(
+            this.container.clientWidth,
+            this.container.clientHeight
+          )
+        },
+        uFresnelInfluence: {
+          value: 0.75
+        },
+        uColor: {
+          value: new Color(0xC5D8E2)
+        },
+        uColorMin: {
+          value: 0
+        },
+        uColorMax: {
+          value: 0.46
+        },
+      }
+    })
   }
 
   _createClock() {

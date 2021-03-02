@@ -17,6 +17,7 @@
     "sass": "^1.32.8"
   },
   "dependencies": {
+    "glsl-blend": "^1.0.3",
     "three": "^0.126.0",
     "tweakpane": "^2.0.0"
   }
