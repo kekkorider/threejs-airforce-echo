@@ -58,7 +58,7 @@ class App {
     // this._createControls()
     this._createDebugPanel()
 
-    this.renderer.setAnimationLoop(() => {
+    gsap.ticker.add(() => {
       this._update()
       this._render()
     })
@@ -87,9 +87,23 @@ class App {
         if (ball.userData.theta <= this.player.userData.theta + 0.1 && ball.userData.theta >= this.player.userData.theta - 0.1) {
           // Compare the ball's mode with the player's mode
           if (ball.userData.mode === this.state.playerMode) {
-            this.balls.remove(ball)
-            this.state.score++
-            this.ui.score.textContent = this.state.score
+            if (ball.userData.removing) return
+
+            gsap.to(ball.scale, {
+              duration: 0.4,
+              x: 0,
+              y: 0,
+              z: 0,
+              ease: 'back.in(4)',
+              onStart: () => {
+                ball.userData.removing = true
+                this.state.score++
+                this.ui.score.textContent = this.state.score
+              },
+              onComplete: () => {
+                this.balls.remove(ball)
+              }
+            })
           }
         }
       }
@@ -307,6 +321,7 @@ class App {
       case 'Space':
         this.state.playerMode = 'dark'
         this.player.material.matcap = this.textures.purple
+        gsap.to(this.player.rotation, { y: Math.PI, duration: 0.5, ease: 'expo.out' })
         break
     }
   }
@@ -316,6 +331,7 @@ class App {
       case 'Space':
         this.state.playerMode = 'white'
         this.player.material.matcap = this.textures.white05
+        gsap.to(this.player.rotation, { y: 0, duration: 0.5, ease: 'expo.out' })
         break
     }
   }
